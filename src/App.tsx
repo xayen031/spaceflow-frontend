@@ -11,6 +11,7 @@ import ProtectedRoute from '@/components/routes/ProtectedRoute'
 // App Pages
 import LoginPage from '@/pages/LoginPage'
 import LogoutPage from '@/pages/LogoutPage'
+import ProfilePage from '@/pages/ProfilePage'
 
 // Admin Management Pages
 import ManagementPage from '@/pages/ManagementPage';
@@ -33,6 +34,7 @@ function App() {
           }
         >
           <Route path="/anasayfa" element={<div>Kontrol Paneli - Korumalı</div>} />
+          <Route path="/profil" element={<ProfilePage />} />
           <Route path="/cikis" element={<LogoutPage />} />
           <Route path="/yonetim" element={<ProtectedRoute requiredRoles={['admin']}><ManagementPage/></ProtectedRoute>} />
         </Route>
