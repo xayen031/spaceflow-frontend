@@ -22,19 +22,74 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
-const navigationLinks = [
+const baseNavigationLinks = [ // Renamed to baseNavigationLinks
   { name: 'Anasayfa', href: '/anasayfa', icon: <Home className="size-4" /> },
   { name: 'İhale Arama', href: '/ihale-arama', icon: <Search className="size-4" /> },
   { name: 'Bültenlerim', href: '/bultenlerim', icon: <Newspaper className="size-4" /> },
   { name: 'Takip Listem', href: '/takip-listem', icon: <Heart className="size-4" /> },
   { name: 'Sonuçlarım', href: '/sonuclarim', icon: <ListOrdered className="size-4" /> },
   { name: 'Sözleşmelerim', href: '/sozlesmelerim', icon: <FileText className="size-4" /> },
-  { name: 'Yönetim', href: '/yonetim', icon: <Shield className="size-4" /> },
 ];
 
 export default function Header() {
   const location = useLocation();
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getUserRole = async () => {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        console.error("Error fetching session for header:", sessionError.message);
+        setUserRole(null);
+        return;
+      }
+
+      if (session) {
+        const userId = session.user?.id;
+        if (userId) {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('rol')
+            .eq('id', userId)
+            .single();
+
+          if (profileError) {
+            console.error("Error fetching user profile for header:", profileError.message);
+            setUserRole(null);
+          } else if (profile) {
+            setUserRole(profile.rol);
+          } else {
+            setUserRole(null); // Profile not found
+          }
+        } else {
+          setUserRole(null); // User ID not found in session
+        }
+      } else {
+        setUserRole(null); // No active session
+      }
+    };
+
+    getUserRole();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, _session) => {
+      getUserRole(); // Re-fetch role on auth state change
+    });
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
+  }, []);
+
+  // Conditionally add the 'Yönetim' link if the user is an admin
+  const navigationLinks = userRole === 'admin'
+    ? [...baseNavigationLinks, { name: 'Yönetim', href: '/yonetim', icon: <Shield className="size-4" /> }]
+    : baseNavigationLinks;
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background px-4 py-3 sm:px-6 lg:px-8">

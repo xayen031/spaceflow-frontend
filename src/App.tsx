@@ -1,3 +1,4 @@
+// src/App.tsx
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 
 // Components
@@ -7,9 +8,12 @@ import Header from '@/components/layout/Header';
 // Route Protection
 import ProtectedRoute from '@/components/routes/ProtectedRoute'
 
-// Pages
+// App Pages
 import LoginPage from '@/pages/LoginPage'
 import LogoutPage from '@/pages/LogoutPage'
+
+// Admin Management Pages
+import ManagementPage from '@/pages/ManagementPage';
 
 function App() {
   return (
@@ -21,10 +25,7 @@ function App() {
         <Route
           element={
             <ProtectedRoute>
-              {/* Header'ı burada render edin */}
               <Header />
-              {/* Outlet, bu Route'un altındaki eşleşen alt rotaların içeriğini render eder. */}
-              {/* Header ve altındaki içerik arasında boşluk sağlamak için bir div eklenebilir */}
               <div className="container mx-auto p-4">
                 <Outlet />
               </div>
@@ -33,8 +34,7 @@ function App() {
         >
           <Route path="/anasayfa" element={<div>Kontrol Paneli - Korumalı</div>} />
           <Route path="/cikis" element={<LogoutPage />} />
-          {/* Diğer korumalı rotalarınızı buraya ekleyin */}
-          {/* Örn: <Route path="/ihale-arama" element={<div>İhale Arama Sayfası</div>} /> */}
+          <Route path="/yonetim" element={<ProtectedRoute requiredRoles={['admin']}><ManagementPage/></ProtectedRoute>} />
         </Route>
       </Routes>
     </BrowserRouter>
